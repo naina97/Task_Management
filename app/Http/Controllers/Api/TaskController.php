@@ -70,7 +70,8 @@ class TaskController extends Controller
             DB::commit();
             if($task->is_completed == 1)
             {
-                SendTaskCompletedEmail::dispatch($task);
+                // SendTaskCompletedEmail::dispatch($task);
+                dispatch(new SendTaskCompletedEmail($task));
             }
             return response(['data' => $task,'status' => 200, 'message' => 'Task Updated successfully.']);
 

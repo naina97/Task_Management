@@ -23,6 +23,12 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response(['status' => 422, 'message' => $validator->errors()->first()]);
         }
+        $email = $request->email;
+
+        if (!Str::endsWith($email, '.com')) {
+            return response(['status' => 422, 'message' => 'Only users with a .com email address can register.']);
+        }
+    
         DB::beginTransaction();
         try {
             $user = new User;

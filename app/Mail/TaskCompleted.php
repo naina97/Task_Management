@@ -3,11 +3,9 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class TaskCompleted extends Mailable
 {
@@ -15,18 +13,21 @@ class TaskCompleted extends Mailable
 
     public $task;
 
-    public function __construct(Task $task)
+    public function __construct($title,$description)
     {
-        $this->task = $task;
-    }
+        $this->title = $title;
+        $this->description = $description;
 
+        \Log::info('TaskCompleted Mailable Constructed');
+
+    }
     public function build()
     {
-        return $this->subject('Task Completed')
-                    ->markdown('emails.tasks.completed')
+        return $this->view('emails.tasks.completed')
+                    ->subject('Task Completed')
                     ->with([
-                        'taskTitle' => $this->task->title,
-                        'taskDescription' => $this->task->description,
+                        'taskTitle' => $this->title,
+                        'taskDescription' => $this->description,
                     ]);
     }
     
