@@ -10,12 +10,16 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\SendTaskCompletedEmail;
+
 class TaskController extends Controller
 {
     public function index()
     {
-        $task  = auth()->user()->tasks;
-        return response(['data' => $$task, 'status' => 200, 'message' => 'Task List']);
+        $authUcser = Auth::user();
+        $user_id  = $authUcser->id;
+        $task = Task::with('user')->where('user_id',$user_id)->get();
+        return response(['data' => $task, 'status' => 200, 'message' => 'Task List']);
     }
 
     public function store(Request $request)
@@ -47,6 +51,7 @@ class TaskController extends Controller
 
     public function update(Request $request,$task_id)
     {
+        // {{dd($request->all());}};
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'nullable',
@@ -54,15 +59,19 @@ class TaskController extends Controller
         if ($validator->fails()) {
             return response(['status' => 422, 'message' => $validator->errors()->first()]);
         }
-        $task = Task::where('id',$task_id)->first();
+        $task = Task::find($task_id);
         try {
             
             DB::beginTransaction();
             $task->title = $request->title;
             $task->description = $request->description;
-            $task->user_id = $request->user_id;
+            $task->is_completed = $request->is_completed ?? $task->is_completed;
             $task->save();
             DB::commit();
+            if($task->is_completed == 1)
+            {
+                SendTaskCompletedEmail::dispatch($task);
+            }
             return response(['data' => $task,'status' => 200, 'message' => 'Task Updated successfully.']);
 
         } catch (\Exception $e) {
@@ -71,8 +80,9 @@ class TaskController extends Controller
         }
     }
 
-    public function destroy(Task $task)
+    public function delete(Request $request,$task_id)
     {
+        $task = Task::find($task_id);
         $task->delete();
         return response()->json(['message' => 'Task deleted successfully']);
     }

@@ -20,8 +20,10 @@ Route::post('login', [\App\Http\Controllers\Api\AuthController::class, 'login'])
 
 Route::middleware('auth:sanctum')->group(function () {
      Route::post('logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
-     Route::apiResource('tasks', \App\Http\Controllers\Api\TaskController::class);
-
+     Route::get('tasks', [\App\Http\Controllers\Api\TaskController::class,'index']);
+     Route::post('tasks', [\App\Http\Controllers\Api\TaskController::class,'store']);
+     Route::post('tasks/{id}', [\App\Http\Controllers\Api\TaskController::class,'update']);
+     Route::delete('tasks/{id}', [\App\Http\Controllers\Api\TaskController::class,'delete']);
 
 });
 
